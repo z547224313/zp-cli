@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+
+// 交互式命令行
+const inquirer = require('inquirer')
+// 修改控制台字符串样式
+const chalk = require('chalk')
+const fs = require('fs')
+// 读取
+const templateObj = require(`${__dirname}/../template`)
+
+//交互命令
+let question = [
+  {
+    name: 'name',
+    type: 'input',
+    message: '请输入模版名称',
+    validate(val) {
+      if (val === '') {
+        return 'name is required'
+      } else if (templateObj[val]) {
+        return 'Template has already existed'
+      } else {
+        return true
+      }
+    }
+  },
+  {
+    name: "url",
+    type: "input",
+    message: '请输入模版地址',
+    validate(val) {
+      if (val === '') {
+        return 'url is required'
+      } else {
+        return true
+      }
+    }
+  }
+]
+
+inquirer.prompt(question).then(answers => {
+  // answers 就是用户输入
+  let {name, url} = answers
+  // 过滤 unicode 字符
+  templateObj[name] = url.replace(/[\u0000-\u0019]/g, '')
+  // 把模版信息写入template
+  fs.writeFile(`${__dirname}/../template.json`, JSON.stringify(templateObj), 'utf-8', err => {
+    if (err) {
+      console.log(err)
+    } else {
+      console.log(chalk.green('Add successfully!\n'))
+      console.log(chalk.grey('The last template is:\n'))
+      console.log(templateObj)
+      console.log('\n')
+    }
+  })
+})
+
